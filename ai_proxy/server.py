@@ -6,8 +6,22 @@ import multiprocessing
 import argparse
 import time
 import thriftpy2
-
 from thriftpy2.rpc import make_server
+
+from thriftpy2.protocol import (
+    TBinaryProtocolFactory,
+    TCompactProtocolFactory
+)
+
+from thriftpy2.transport import (
+    TBufferedTransportFactory,
+    TFramedTransportFactory,
+    TServerSocket,
+    TSSLServerSocket,
+    TSocket,
+    TSSLSocket,
+)
+
 from utils.langchain_util import LangChainClient
 from utils.openai_util import get_completion
 
@@ -110,7 +124,27 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = int(args.port)
     multiprocessing.set_start_method('fork')
-    server = make_server(ai_proxy_thrift.AIProxyService, Handler(), '127.0.0.1', port)
+
+    # make_server(service, handler,
+    #             host="localhost", port=9090, unix_socket=None,
+    #             proto_factory=TBinaryProtocolFactory(),
+    #             trans_factory=TBufferedTransportFactory(),
+    #             client_timeout=3000, certfile=None):
+
+    # TBinaryProtocolFactory v.s. TCompactProtocolFactory
+    # TBufferedTransportFactory v.s. TFramedTransportFactory
+    # server = make_server(ai_proxy_thrift.AIProxyService, Handler(), '127.0.0.1', port)
+
+    server = make_server(service=ai_proxy_thrift.AIProxyService,
+                         handler=Handler(),
+                         host='localhost',
+                         port=port,
+                         # proto_factory=TCompactProtocolFactory(),
+                         proto_factory=TBinaryProtocolFactory(),
+                         # trans_factory=TFramedTransportFactory(),
+                         trans_factory=TBufferedTransportFactory(),
+                         client_timeout=30000
+                         )
     server.serve()
 
     logger.info(f"start serving")

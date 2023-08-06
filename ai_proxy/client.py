@@ -1,8 +1,22 @@
 import logging
 import thriftpy2
 from thriftpy2.rpc import make_client
+
+from thriftpy2.protocol import (
+    TBinaryProtocolFactory,
+    TCompactProtocolFactory
+)
+
+from thriftpy2.transport import (
+    TBufferedTransportFactory,
+    TFramedTransportFactory,
+    TServerSocket,
+    TSSLServerSocket,
+    TSocket,
+    TSSLSocket,
+)
+
 ai_proxy_thrift = thriftpy2.load("ai_proxy/idl/ai_proxy.thrift", module_name="ai_proxy_thrift")
-base_thrift = thriftpy2.load("ai_proxy/idl/base.thrift", module_name="ai_proxy_thrift")
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
@@ -11,7 +25,24 @@ logger.setLevel(logging.INFO)
 
 if __name__ == '__main__':
 
-    client = make_client(ai_proxy_thrift.AIProxyService, host='localhost', port=6668, timeout=30000)
+    # client = make_client(ai_proxy_thrift.AIProxyService, host='127.0.0.1', port=6668, timeout=30000)
+    # make_client(service, host="localhost", port=9090, unix_socket=None,
+    #             proto_factory=TBinaryProtocolFactory(),
+    #             trans_factory=TBufferedTransportFactory(),
+    #             timeout=3000, cafile=None, ssl_context=None, certfile=None,
+    #             keyfile=None, url="", socket_family=socket.AF_INET):
+
+
+    client = make_client(service=ai_proxy_thrift.AIProxyService,
+                         host="localhost",
+                         port=6668,
+                         # port=7668,
+                         # proto_factory=TCompactProtocolFactory(),
+                         proto_factory=TBinaryProtocolFactory(),
+                         # trans_factory=TFramedTransportFactory(),
+                         trans_factory=TBufferedTransportFactory(),
+                         timeout=30000
+                         )
 
     print(client.Ping())
 
